@@ -170,7 +170,7 @@ elif page == "Визуализация (EDA)":
     st.write("Визуализация распределений и внутренних взаимосвязей признаков твоего датасета.")
     
     # Пытаемся прочитать реальные CSV файлы, если они есть в папке ргр
-    class_file = os.path.join(BASE_DIR, "card_transdata_litle.csv") 
+    class_file = os.path.join(BASE_DIR, "card_transdata_little.csv") 
     regr_file = os.path.join(BASE_DIR, "AirQualityUCI2.csv")      
     
     df = None
