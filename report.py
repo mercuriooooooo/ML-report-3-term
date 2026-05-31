@@ -356,26 +356,24 @@ elif page == "Инференс (Прогноз)":
     
     st.markdown("---")
     
-    # --- ШАГ 1: Динамическая подгрузка нужного скалера и списка колонок ---
+    # --- ШАГ 1: Задаем списки колонок вручную и подгружаем только скалер ---
     if task_type == "Классификация":
+        # Жестко прописываем признаки для классификации в правильном порядке
+        target_columns = ["distance_from_home", "distance_from_last_transaction", "ratio_to_median_purchase_price", "repeat_retailer", "used_chip", "used_pin_number", "online_order"]
         try:
             with open("scaler_clf.pkl", "rb") as f:
                 scaler_transformer = pickle.load(f)
-            with open("columns_clf.pkl", "rb") as f:
-                target_columns = pickle.load(f)
         except Exception as e:
-            st.error(f"Ошибка загрузки конфигурационных файлов классификации: {e}")
-            target_columns = ["distance_from_home", "distance_from_last_transaction", "ratio_to_median_purchase_price", "repeat_retailer", "used_chip", "used_pin_number", "online_order"]
+            st.error(f"Ошибка загрузки скалера классификации (scaler_clf.pkl): {e}")
             scaler_transformer = None
     else:
+        # Жестко прописываем признаки для регрессии в правильном порядке
+        target_columns = ["PT08.S1(CO)", "C6H6(GT)", "PT08.S2(NMHC)", "NOx(GT)", "T (°C)", "RH (%)", "AH"]
         try:
             with open("scaler_reg.pkl", "rb") as f:
                 scaler_transformer = pickle.load(f)
-            with open("columns_reg.pkl", "rb") as f:
-                target_columns = pickle.load(f)
         except Exception as e:
-            st.error(f"Ошибка загрузки конфигурационных файлов регрессии: {e}")
-            target_columns = ["PT08.S1(CO)", "C6H6(GT)", "PT08.S2(NMHC)", "NOx(GT)", "T (°C)", "RH (%)", "AH"]
+            st.error(f"Ошибка загрузки скалера регрессии (scaler_reg.pkl): {e}")
             scaler_transformer = None
 
     # --- ВАРИАНТ 1: ПАКЕТНЫЙ ПРОГНОЗ ИЗ CSV ---
@@ -391,31 +389,29 @@ elif page == "Инференс (Прогноз)":
             model = load_real_model(task_type, model_choice)
             if model is not None:
                 try:
-                    # КРИТИЧЕСКИЙ ШАГ: Оставляем только те колонки, которые ожидает скалер и модель
+                    # Вырезаем из загруженного файла только нужные колонки в правильном порядке
                     X_batch = input_df[target_columns]
                     
-                    # ПРИНУДИТЕЛЬНО стандартизируем данные
+                    # Масштабируем данные через сохраненный скалер
                     if scaler_transformer is not None:
-                        X_batch_scaled = scaler_transformer.transform(X_raw=X_batch)
+                        X_batch_scaled = scaler_transformer.transform(X_batch)
                     else:
-                        X_batch_scaled = X_batch
+                        X_batch_scaled = X_batch.values
                     
-                    # Получаем прогноз модели
+                    # Считаем прогноз
                     preds = model.predict(X_batch_scaled)
                     
-                    # Безопасное сглаживание двумерных массивов (для нейросетей TensorFlow)
+                    # Сглаживаем для нейросетей TensorFlow
                     if hasattr(preds, "flatten"):
                         preds = preds.flatten()
                     
                     if task_type == "Классификация":
-                        # Если на выходе вещественные вероятности (например, от Keras) — применяем порог 0.5
                         if preds.dtype == "float32" or preds.dtype == "float64":
                             classes = (preds > 0.5).astype(int)
                         else:
                             classes = preds.astype(int)
                         input_df['Прогноз'] = classes
                     else:
-                        # Для регрессии аккуратно округляем предсказания датчиков
                         input_df['Прогноз'] = np.round(preds, 2)
                     
                     st.success("Расчет для таблицы успешно выполнен!")
@@ -423,8 +419,9 @@ elif page == "Инференс (Прогноз)":
                     
                 except Exception as e:
                     st.error(f"Ошибка соответствия колонок при подаче в модель: {e}")
+                    st.info("Убедитесь, что ваш CSV-файл содержит все необходимые столбцы: " + ", ".join(target_columns))
             else:
-                st.warning(f"Файл модели для '{model_choice}' ({task_type}) не найден на сервере. Показываем пример в демо-режиме.")
+                st.warning(f"Файл модели для '{model_choice}' ({task_type}) не найден на сервере.")
                 
     st.markdown("---")
     
@@ -434,7 +431,6 @@ elif page == "Инференс (Прогноз)":
     with st.form("input_form"):
         st.write("Укажите параметры объекта:")
         
-        # Динамически подставляем реальные признаки под конкретную задачу
         if task_type == "Классификация":
             v1 = st.number_input("distance_from_home:", value=3.38)
             v2 = st.number_input("distance_from_last_transaction:", value=-0.66)
@@ -443,7 +439,6 @@ elif page == "Инференс (Прогноз)":
             v5 = st.number_input("used_chip:", value=1.36)
             v6 = st.number_input("used_pin_number:", value=-0.33)
             v7 = st.number_input("online_order:", value=-1.36)
-            # Сохраняем строго в правильном порядке признаков
             raw_features = [v1, v2, v3, v4, v5, v6, v7]
         else:
             v2 = st.number_input("PT08.S1(CO):", value=1360.0)
@@ -453,7 +448,6 @@ elif page == "Инференс (Прогноз)":
             v6 = st.number_input("T (°C):", value=13.6)
             v7 = st.number_input("RH (%):", value=48.9)
             v8 = st.number_input("AH:", value=0.75)
-            # Сохраняем строго в правильном порядке признаков
             raw_features = [v2, v3, v4, v5, v6, v7, v8]
         
         submitted = st.form_submit_button("Рассчитать прогноз")
@@ -462,31 +456,29 @@ elif page == "Инференс (Прогноз)":
             model = load_real_model(task_type, model_choice)
             st.markdown("### Результат инференса:")
             
-            # Строим матрицу-строку (1, N) для подачи в скалер/модель
+            # Строим DataFrame из одной строчки с явным указанием имен колонок для скалера
             features_matrix = pd.DataFrame([raw_features], columns=target_columns)
             
             if model is not None:
                 try:
-                    # ПРИНУДИТЕЛЬНО стандартизируем ручной ввод перед отправкой в модель
+                    # Стандартизируем ручной ввод перед отправкой в модель
                     if scaler_transformer is not None:
                         features_matrix_scaled = scaler_transformer.transform(features_matrix)
                     else:
                         features_matrix_scaled = features_matrix.values
                     
-                    # Обработка защиты от несовпадения колонок Scikit-Learn
+                    # Проверка n_features_in_ для Scikit-Learn моделей
                     if hasattr(model, 'n_features_in_') and model.n_features_in_ != features_matrix_scaled.shape[1]:
                         diff = model.n_features_in_ - features_matrix_scaled.shape[1]
                         if diff > 0:
                             padding = np.zeros((1, diff))
                             features_matrix_scaled = np.hstack((features_matrix_scaled, padding))
                     
-                    # Выполняем инференс
                     prediction = model.predict(features_matrix_scaled)
                     
-                    # Вытаскиваем число из возможных массивов (актуально для TensorFlow/Sklearn)
                     if isinstance(prediction, (np.ndarray, list)):
                         prediction = prediction[0]
-                    if hasattr(prediction, "str") or isinstance(prediction, (np.ndarray, list)):
+                    if hasattr(prediction, "ndim") and prediction.ndim > 0:
                         prediction = prediction[0]
                     
                     if task_type == "Классификация":
@@ -500,15 +492,8 @@ elif page == "Инференс (Прогноз)":
                     st.balloons()
                     
                 except Exception as e:
-                    st.error(f"Ошибка соответствия структуры признаков в сохраненном файле: {e}")
-                    st.info("Генерируем прогноз на основе базовой структуры:")
-                    if task_type == "Классификация":
-                        st.metric(label="Прогноз (Scikit-Learn Fallback)", value="Безопасная транзакция!")
-                    else:
-                        st.metric(label="Прогноз (Scikit-Learn Fallback)", value="142.30 мг/м³")
-                    st.balloons()
+                    st.error(f"Ошибка при обработке признаков или инференсе: {e}")
             else:
-                # Если файл модели не загружен (Демо-режим)
                 if task_type == "Классификация":
                     st.metric(label="Результат проверки (Демо)", value="Легитимная транзакция")
                 else:
