@@ -100,7 +100,7 @@ if page == "Главная (Разработчик)":
     col1, col2 = st.columns([1, 2])
     with col1:
         try:
-            img_name = "pic.jpg" #if os.path.exists(os.path.join(BASE_DIR, "pic.jpg")) else "avatar.jpg"
+            img_name = "pic.jpg" 
             st.image(os.path.join(BASE_DIR, img_name), caption="Разработчик", width="stretch")
         except Exception as e:
             st.error(f"Не удалось отобразить фото: {e}")
@@ -170,7 +170,7 @@ elif page == "Визуализация (EDA)":
     st.write("Визуализация распределений и внутренних взаимосвязей признаков твоего датасета.")
     
     # Пытаемся прочитать реальные CSV файлы, если они есть в папке ргр
-    class_file = os.path.join(BASE_DIR, "card_transdata2.csv") 
+    class_file = os.path.join(BASE_DIR, "card_transdata_litle.csv") 
     regr_file = os.path.join(BASE_DIR, "AirQualityUCI2.csv")      
     
     df = None
@@ -286,7 +286,6 @@ elif page == "Инференс (Прогноз)":
             v7 = st.number_input("online_order:", value=-1.36)
             raw_features = [v1, v2, v3, v4, v5, v6, v7]
         else:
-            # v1 = st.number_input("CO(GT):", value=2.6)
             v2 = st.number_input("PT08.S1(CO):", value=1360.0)
             v3 = st.number_input("C6H6(GT):", value=11.9)
             v4 = st.number_input("PT08.S2(NMHC):", value=1046.0)
