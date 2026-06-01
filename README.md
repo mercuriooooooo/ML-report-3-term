@@ -24,3 +24,31 @@
 *   **Градиентный бустинг:** `CatBoost`
 *   **Глубокое обучение (Deep Learning):** `TensorFlow / Keras`
 *   **Визуализация (EDA):** `Matplotlib`, `Seaborn`
+
+## Структура репозитория и назначение файлов
+
+```text
+├── .streamlit/
+│   └── config.toml             # Системные настройки отображения интерфейса Streamlit
+├── AirQualityUCI2.csv          # Датасет для задачи регрессии (качество воздуха)
+├── card_transdata_little.csv   # Датасет для задачи классификации (банковский фрод)
+├── report.py                   # Главный исполняемый скрипт веб-приложения (дашборд)
+├── requirements.txt            # Фиксированные версии зависимостей для сборки в облаке
+├── scaler_clf.pkl              # Сериализованный StandardScaler для задачи классификации
+├── scaler_reg.pkl              # Сериализованный StandardScaler для задачи регрессии
+│
+旋── [Модели классификации]
+├── ml1_classical.pkl           # Logistic Regression (Классическая базовая модель)
+├── ml2_class_bagging.pkl       # Bagging Classifier (Ансамбль на основе бэггинга)
+├── ml3_catboost_class.cbm      # CatBoostClassifier (Продвинутый градиентный бустинг)
+├── ml4_class_gb.pkl            # Gradient Boosting (Классический бустинг)
+├── ml5_class_stacking.pkl      # Stacking Classifier (Мета-модель классификации)
+├── ml6_nn_class.keras          # Fully Connected Neural Network (Полносвязная ИНС Keras)
+│
+└── [Модели регрессии]
+    ├── ml1_regression.pkl      # Polynomial Regression (Классическая модель с генерацией признаков)
+    ├── ml2_regr_bagging.pkl    # Bagging Regressor (Бэггинг над решающими деревьями)
+    ├── ml3_catboost_regr.cbm   # CatBoostRegressor (Оптимизированный бустинг)
+    ├── ml4_regr_gragb.pkl      # Gradient Boosting Regressor (Ансамбль регрессии)
+    ├── ml5_regr_stacking.pkl   # Stacking Regressor (Композиция мета-моделей)
+    └── ml6_nn_regr.keras       # MLP Regressor (Полносвязная многослойная ИНС Keras)
