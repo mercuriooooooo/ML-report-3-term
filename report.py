@@ -267,7 +267,7 @@ elif page == "Инференс (Прогноз)":
             st.error(f"Ошибка загрузки скалера классификации (scaler_clf.pkl): {e}")
             scaler_transformer = None
     else:
-        target_columns = ["PT08.S1(CO)", "C6H6(GT)", "PT08.S2(NMHC)", "NOx(GT)", "T (°C)", "RH (%)", "AH"]
+        target_columns = ["PT08.S1(CO)", "C6H6(GT)", "PT08.S2(NMHC)", "NOx(GT)", "T", "RH", "AH"]
         try:
             with open("scaler_reg.pkl", "rb") as f:
                 scaler_transformer = pickle.load(f)
