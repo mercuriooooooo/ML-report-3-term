@@ -37,7 +37,7 @@
 ├── scaler_clf.pkl              # Сериализованный StandardScaler для задачи классификации
 ├── scaler_reg.pkl              # Сериализованный StandardScaler для задачи регрессии
 │
-旋── [Модели классификации]
+└── [Модели классификации]
 ├── ml1_classical.pkl           # Logistic Regression (Классическая базовая модель)
 ├── ml2_class_bagging.pkl       # Bagging Classifier (Ансамбль на основе бэггинга)
 ├── ml3_catboost_class.cbm      # CatBoostClassifier (Продвинутый градиентный бустинг)
