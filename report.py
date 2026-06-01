@@ -327,7 +327,7 @@ elif page == "Инференс (Прогноз)":
             model = load_real_model(task_type, model_choice)
             st.markdown("### Результат инференса:")
             
-            features_matrix = pd.DataFrame([raw_features], columns=target_columns)
+            features_matrix = pd.DataFrame([raw_features], columns=target_columns).astype(float)
             
             if model is not None:
                 try:
